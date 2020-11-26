@@ -24,7 +24,8 @@ Check:
 func (b *Bwhatsapp) HandleError(err error) {
 	// ignore received invalid data errors. https://github.com/42wim/matterbridge/issues/843
 	// ignore tag 174 errors. https://github.com/42wim/matterbridge/issues/1094
-	if strings.Contains(err.Error(), "error processing data: received invalid data") || strings.Contains(err.Error(), "invalid string with tag 174") {
+	if strings.Contains(err.Error(), "error processing data: received invalid data") ||
+		strings.Contains(err.Error(), "invalid string with tag 174") {
 		return
 	}
 
@@ -47,16 +48,22 @@ func (b *Bwhatsapp) reconnect(err error) {
 		Max:    5 * time.Minute,
 		Jitter: true,
 	}
+
 	for {
 		d := bf.Duration()
+
 		b.Log.Errorf("Connection failed, underlying error: %v", err)
 		b.Log.Infof("Waiting %s...", d)
+
 		time.Sleep(d)
+
 		b.Log.Info("Reconnecting...")
+
 		err := b.conn.Restore()
 		if err == nil {
 			bf.Reset()
 			b.startedAt = uint64(time.Now().Unix())
+
 			return
 		}
 	}
@@ -101,11 +108,13 @@ func (b *Bwhatsapp) HandleTextMessage(message whatsapp.TextMessage) {
 			if mention == "" {
 				mention = "someone"
 			}
+
 			message.Text = strings.Replace(message.Text, "@"+numberAndSuffix[0], "@"+mention, 1)
 		}
 	}
 
 	b.Log.Debugf("<= Sending message from %s on %s to gateway", senderJID, b.Account)
+
 	rmsg := config.Message{
 		UserID:    senderJID,
 		Username:  senderName,
@@ -125,6 +134,7 @@ func (b *Bwhatsapp) HandleTextMessage(message whatsapp.TextMessage) {
 	}
 
 	b.Log.Debugf("<= Message is %#v", rmsg)
+
 	b.Remote <- rmsg
 }
 
@@ -157,6 +167,7 @@ func (b *Bwhatsapp) HandleImageMessage(message whatsapp.ImageMessage) {
 	}
 
 	b.Log.Debugf("<= Sending message from %s on %s to gateway", senderJID, b.Account)
+
 	rmsg := config.Message{
 		UserID:    senderJID,
 		Username:  senderName,
@@ -196,6 +207,7 @@ func (b *Bwhatsapp) HandleImageMessage(message whatsapp.ImageMessage) {
 	helper.HandleDownloadData(b.Log, &rmsg, filename, message.Caption, "", &data, b.General)
 
 	b.Log.Debugf("<= Image Message is %#v", rmsg)
+
 	b.Remote <- rmsg
 }
 
